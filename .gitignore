@@ -1,0 +1,14 @@
+.venv
+
+# ignore build artifacts
+__pycache__
+*.egg-info/
+
+# builds
+tests/images/*
+
+# avoid ignore .gitkeep
+!tests/images/.gitkeep
+
+# ipynb
+.ipynb_checkpoints/
