@@ -38,10 +38,8 @@ logger.addHandler(handler)
 def _get_name():
     level = inspect.currentframe().f_back.f_code.co_name
     upper_frame = inspect.currentframe().f_back.f_back
-    module_frame = (
-        inspect.getmodule(upper_frame)
-        if inspect.getmodule(upper_frame)
-        else inspect.getmodule(upper_frame.f_back)
+    module_frame = inspect.getmodule(upper_frame) or inspect.getmodule(
+        upper_frame.f_back
     )
     package = module_frame.__package__
     file = module_frame.__name__
