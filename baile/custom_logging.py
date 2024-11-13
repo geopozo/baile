@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 import json
+import time
 import logging
 import inspect
 import argparse
@@ -102,6 +103,7 @@ def _get_name():
 # This print the structured format
 def print_structured(message, tag, level, package, file, module_function):
     log = {
+        "time": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
         "level": level,
         "package": package,
         "file": file,
