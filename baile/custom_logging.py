@@ -38,27 +38,32 @@ def customize_parser():
         action="store_false",
         dest="human",
         help="Format the logs as JSON",
-    ) #app.py
-    parser_logging.add_argument("--n_tabs", type=int, help="Number of tabs, use it in app.py") #app.py
+    )  # app.py
     parser_logging.add_argument(
-        "--mock_path", type=str, default=dir_in, help="Directory of mock file/s, use it in app.py"
-    ) #app.py
+        "--n_tabs", type=int, help="Number of tabs, use it in app.py"
+    )  # app.py
+    parser_logging.add_argument(
+        "--mock_path",
+        type=str,
+        default=dir_in,
+        help="Directory of mock file/s, use it in app.py",
+    )  # app.py
     parser_logging.add_argument(
         "--benchmark", action="store_true", help="Enable benchmarking, use it in app.py"
-    ) #app.py
+    )  # app.py
     parser_logging.add_argument(
         "--headless",
         action="store_true",
         dest="headless",
         default=True,
         help="Set headless as True, use it in app.py",
-    ) #app.py
+    )  # app.py
     parser_logging.add_argument(
         "--no_headless",
         action="store_false",
         dest="headless",
         help="Set headless as False, use it in app.py",
-    ) #app.py
+    )  # app.py
     return parser_logging
 
 
@@ -103,7 +108,7 @@ def _get_name():
 # This print the structured format
 def print_structured(message, tag, level, package, file, module_function):
     log = {
-        "time": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()),
+        "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
         "level": level,
         "package": package,
         "file": file,
