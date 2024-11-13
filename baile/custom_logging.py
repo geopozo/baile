@@ -36,8 +36,8 @@ logger.addHandler(handler)
 
 # Improve the name
 def _get_name():
-    level = inspect.currentframe().f_back.f_code.co_name
-    upper_frame = inspect.currentframe().f_back.f_back
+    level = inspect.currentframe().f_back.f_back.f_code.co_name
+    upper_frame = inspect.currentframe().f_back.f_back.f_back
     module_frame = inspect.getmodule(upper_frame) or inspect.getmodule(
         upper_frame.f_back
     )
@@ -68,73 +68,46 @@ def print_structured(message, tag, level, package, file, module_function):
     print(json.dumps(log, indent=4))
 
 
+# Generalized wrap functions
+def _log_message(level_func, message, tag=None):
+    if not arg_logging["human"]:
+        level, package, file, module_function = _get_name()
+        print_structured(message, tag, level, package, file, module_function)
+        return
+    tag = f" ({tag})" if tag else ""
+    level_func(f"{_get_name()}: {message}{tag}")
+
+
 # Custom debug with custom level
 def debug2(message, tag=None):
     if not arg_logging["human"]:
         level, package, file, module_function = _get_name()
         print_structured(message, tag, level, package, file, module_function)
         return
-    if tag:
-        logger.log(DEBUG2, f"{_get_name()}: {message} ({tag})")
-    else:
-        logger.log(DEBUG2, f"{_get_name()}: {message}")
+    tag = f" ({tag})" if tag else ""
+    logger.log(DEBUG2, f"{_get_name()}: {message}{tag}")
 
 
 # Wrap function
 def debug1(message, tag=None):
-    if not arg_logging["human"]:
-        level, package, file, module_function = _get_name()
-        print_structured(message, tag, level, package, file, module_function)
-        return
-    if tag:
-        logger.debug(f"{_get_name()}: {message} ({tag})")
-    else:
-        logger.debug(f"{_get_name()}: {message}")
+    _log_message(logger.debug, message, tag)
 
 
 # Wrap function
 def info(message, tag=None):
-    if not arg_logging["human"]:
-        level, package, file, module_function = _get_name()
-        print_structured(message, tag, level, package, file, module_function)
-        return
-    if tag:
-        logger.info(f"{_get_name()}: {message} ({tag})")
-    else:
-        logger.info(f"{_get_name()}: {message}")
+    _log_message(logger.info, message, tag)
 
 
 # Wrap function
 def warning(message, tag=None):
-    if not arg_logging["human"]:
-        level, package, file, module_function = _get_name()
-        print_structured(message, tag, level, package, file, module_function)
-        return
-    if tag:
-        logger.warning(f"{_get_name()}: {message} ({tag})")
-    else:
-        logger.warning(f"{_get_name()}: {message}")
+    _log_message(logger.warning, message, tag)
 
 
 # Wrap function
 def error(message, tag=None):
-    if not arg_logging["human"]:
-        level, package, file, module_function = _get_name()
-        print_structured(message, tag, level, package, file, module_function)
-        return
-    if tag:
-        logger.error(f"{_get_name()}: {message} ({tag})")
-    else:
-        logger.error(f"{_get_name()}: {message}")
+    _log_message(logger.error, message, tag)
 
 
 # Wrap function
 def critical(message, tag=None):
-    if not arg_logging["human"]:
-        level, package, file, module_function = _get_name()
-        print_structured(message, tag, level, package, file, module_function)
-        return
-    if tag:
-        logger.critical(f"{_get_name()}: {message} ({tag})")
-    else:
-        logger.critical(f"{_get_name()}: {message}")
+    _log_message(logger.critical, message, tag)
