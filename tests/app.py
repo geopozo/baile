@@ -5,9 +5,10 @@ import asyncio
 import baile
 from baile import custom_logging as logging
 
-# Extract jsons of mocks
+# Set result directory
 results_dir = Path(__file__).resolve().parent / "images"
 
+# arguments from command line
 parser = logging.customize_parser()
 args = parser.parse_args()
 arg_dict = vars(args)
