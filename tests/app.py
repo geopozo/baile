@@ -1,16 +1,15 @@
 from time import process_time
 from pathlib import Path
 import json
-import argparse
 import asyncio
 import baile
-
+from baile import custom_logging as logging
 
 # Extract jsons of mocks
 dir_in = Path(__file__).resolve().parent / "mocks"
 results_dir = Path(__file__).resolve().parent / "images"
 
-parser = argparse.ArgumentParser()
+parser = logging.customize_parser()
 parser.add_argument("--n_tabs", type=int, help="Number of tabs")
 parser.add_argument(
     "--mock_path", type=str, default=dir_in, help="Directory of mock file/s"
