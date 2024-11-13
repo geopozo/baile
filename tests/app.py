@@ -3,13 +3,13 @@ from pathlib import Path
 import json
 import asyncio
 import baile
-from baile import custom_logging as logging
+from baile import custom_parser as cparser
 
 # Set result directory
 results_dir = Path(__file__).resolve().parent / "images"
 
 # arguments from command line
-parser = logging.customize_parser()
+parser = cparser.customize_parser()
 args = parser.parse_args()
 arg_dict = vars(args)
 
