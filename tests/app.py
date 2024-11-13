@@ -6,25 +6,9 @@ import baile
 from baile import custom_logging as logging
 
 # Extract jsons of mocks
-dir_in = Path(__file__).resolve().parent / "mocks"
 results_dir = Path(__file__).resolve().parent / "images"
 
 parser = logging.customize_parser()
-parser.add_argument("--n_tabs", type=int, help="Number of tabs")
-parser.add_argument(
-    "--mock_path", type=str, default=dir_in, help="Directory of mock file/s"
-)
-parser.add_argument("--benchmark", action="store_true", help="Enable benchmarking")
-parser.add_argument(
-    "--headless",
-    action="store_true",
-    dest="headless",
-    default=True,
-    help="Set headless as True",
-)
-parser.add_argument(
-    "--no_headless", action="store_false", dest="headless", help="Set headless as False"
-)
 args = parser.parse_args()
 arg_dict = vars(args)
 
