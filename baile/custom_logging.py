@@ -33,6 +33,9 @@ if arg_logging["human"]:
     handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+# Avoid the log from the ancestor's logger
+logger.propagate = False
+
 
 # Improve the name
 def _get_name():
