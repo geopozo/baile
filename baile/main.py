@@ -2,14 +2,13 @@ from pathlib import Path
 import os
 import sys
 import json
-import warnings
 import asyncio
 import async_timeout as atimeout
 
 from .fig_properties import to_spec, from_response, _write_file, DEFAULT_FORMAT
 from .browser import Browser
-
-import chereographer as choreo
+import choreographer as choreo
+import logistro as logging
 
 
 def _get_json_path(path_figs):
@@ -40,63 +39,54 @@ def _load_figure(figure):
 
 
 async def print_from_event(obj):
-    print(f"Event in Tab: {obj["method"]}", file=sys.stderr)
+    logging.info(f"Event in Tab: {obj['method']}")
     if obj["method"] == "Runtime.consoleAPICalled":
-        print(obj, file=sys.stderr)
+        logging.info(obj)
 
 
 async def _generate_image(tab, spec, topojson, mapbox_token, debug):
-    if debug:
-        print(
-            f"The futures in sessions {list(tab.sessions.values())[0].subscriptions_futures}",
-            file=sys.stderr,
-        )
+    logging.info(
+        f"The futures in sessions {list(tab.sessions.values())[0].subscriptions_futures}"
+    )
 
     if debug and "*" not in list(tab.sessions.values())[0].subscriptions:
         tab.subscribe("*", print_from_event)
 
     # subscribe events one time
     event_runtime = tab.subscribe_once("Runtime.executionContextCreated")
-    if debug:
-        print("subscribe Runtime.executionContextCreated", file=sys.stderr)
+    logging.debug1("subscribe Runtime.executionContextCreated")
 
     event_page_fired = tab.subscribe_once("Page.loadEventFired")
-    if debug:
-        print("subscribe Page.loadEventFired", file=sys.stderr)
-    # send request to enable target to generate events and run scripts
+    logging.debug1("subscribe Page.loadEventFired")
 
+    # send request to enable target to generate events and run scripts
     response = await tab.send_command("Page.enable")
     if "error" in response:
         raise RuntimeError(
             "Could not enable the Page"
         ) from choreo.DevtoolsProtocolError(response)
-    if debug:
-        print("Success await tab.send_command('Page.enable')", file=sys.stderr)
+    logging.debug2("Success await tab.send_command('Page.enable')")
+
     await tab.reload()
-    if debug:
-        print("Success await tab.reload()", file=sys.stderr)
+    logging.debug2("Success await tab.reload()")
+
     await event_page_fired
-    if debug:
-        print(
-            f"Succes await event_page_fired, the subscriptions now are {list(tab.sessions.values())[0].subscriptions_futures}",
-            file=sys.stderr,
-        )
+    logging.debug2(
+        f"Succes await event_page_fired, the subscriptions now are {list(tab.sessions.values())[0].subscriptions_futures}"
+    )
 
     response = await tab.send_command("Runtime.enable")
     if "error" in response:
         raise RuntimeError(
             "Could not enable the Runtime"
         ) from choreo.DevtoolsProtocolError(response)
-    if debug:
-        print("Success await tab.send_command('Runtime.enable')", file=sys.stderr)
+    logging.debug1("Success await tab.send_command('Runtime.enable')")
 
     # await event futures
     await event_runtime
-    if debug:
-        print(
-            f"Success await event_runtime, the subscriptions now are {list(tab.sessions.values())[0].subscriptions_futures}",
-            file=sys.stderr,
-        )
+    logging.debug1(
+        f"Success await event_runtime, the subscriptions now are {list(tab.sessions.values())[0].subscriptions_futures}"
+    )
 
     # use event result
     execution_context_id = event_runtime.result()["params"]["context"]["id"]
@@ -125,11 +115,9 @@ async def _generate_image(tab, spec, topojson, mapbox_token, debug):
         raise RuntimeError(
             "Could not run callFunctionOn in Runtime"
         ) from choreo.DevtoolsProtocolError(result)
-    if debug:
-        print(
-            "Succes await tab.send_command('Runtime.callFunctionOn', params=params)",
-            file=sys.stderr,
-        )
+    logging.debug2(
+        "Succes await tab.send_command('Runtime.callFunctionOn', params=params)"
+    )
 
     return result
 
@@ -140,7 +128,7 @@ async def _run_kaleido_in_tab(
     # spec creation
     spec = to_spec(figure, layout_opts)
 
-    print("Calling chromium".center(50, "*"))
+    logging.debug1("Calling chromium".center(50, "*"))
     # Comunicate and run script for image in chromium
     response = await _generate_image(tab, spec, topojson, mapbox_token, debug)
 
@@ -152,12 +140,10 @@ async def _run_kaleido_in_tab(
         layout_opts.get("format", DEFAULT_FORMAT) if layout_opts else DEFAULT_FORMAT
     )
     output_file = f"{path}/{name}.{format_path}"
-    if debug:
-        print("Writing file".center(50, "*"))
+    logging.debug1("Writing file".center(50, "*"))
     # New thread, this avoid the blocking of the event loop
     await asyncio.to_thread(_write_file, img_data, output_file)
-    if debug:
-        print("Returning tab".center(50, "*"))
+    logging.debug1("Returning tab".center(50, "*"))
     # Put the tab in the queue
     await queue.put(tab)
 
@@ -172,11 +158,14 @@ async def create_image(
     debug=None,
     headless=True,
 ):
+
+    if debug:
+        logging.logger.setLevel(logging.DEBUG2)
+
     # Warning if path=None
     if not path:
-        warnings.warn(
-            "Image instance will not be saved as a file. Provide a path to save it.",
-            UserWarning,
+        logging.warning(
+            "Image instance will not be saved as a file. Provide a path to save it."
         )
 
     # Generate list of jsons
@@ -191,7 +180,7 @@ async def create_image(
     ):
 
         async def print_all(r):
-            print(f"All subscription: {r}", file=sys.stderr)
+            logging.info(f"All subscription: {r}")
 
         if debug:
             browser.subscribe("*", print_all)
@@ -206,15 +195,11 @@ async def create_image(
             )  # This verify or can set figure and name
             if name.startswith("mapbox"):
                 continue
-            if debug:
-                print("Got figure, getting tab".center(50, "*"))
+            logging.debug1("Got figure, getting tab".center(50, "*"))
             tab = await queue.get()
-            if debug:
-                print(
-                    f"Awaiting wrapper for img {name} {path} on tab {tab}".center(
-                        100, "*"
-                    )
-                )
+            logging.debug1(
+                f"Awaiting wrapper for img {name} {path} on tab {tab}".center(100, "*")
+            )
             async with atimeout.timeout(60 * 5) as cm:
                 await _run_kaleido_in_tab(
                     tab,
@@ -227,5 +212,4 @@ async def create_image(
                     name,
                     debug,
                 )
-            if debug:
-                print(f"Timeout result: {cm.expired}")
+            logging.info(f"Timeout result: {cm.expired}")
